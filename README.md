@@ -33,7 +33,7 @@ O método mais prático para subir toda a infraestrutura é utilizando o arquivo
 
 ```bash
 # Na raiz do projeto, execute:
-    docker-compose up --build
+    docker-compose up -d
 ```
 Este comando criará os containers e iniciará a aplicação. O MongoDB ficará disponível na porta padrão 27017, e a aplicação Streamlit pelo navegador. Os serviços implementados neste trabalho ficarão disponiveis, normalmente em:
 
