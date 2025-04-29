@@ -97,4 +97,4 @@ Essas operações são feitas utilizando consultas com operadores do MongoDB com
 
 ### Detalhes Importantes
 
-Após subir
+Deviro a variações nas bibliotecas utilizadas para este projeto, muitos processos podem necessitar de ajustes para que possam ser executados com perfeita compatibilidade. Por exemplo: O Processo Kafka é muitas vezes imcompativél com o Python 3.1.2 por depender do recurso Six, e da importação queue, que não existe em versões mais atuais do Python.
