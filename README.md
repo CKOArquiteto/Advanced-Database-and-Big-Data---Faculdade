@@ -94,3 +94,7 @@ Essas operações são feitas utilizando consultas com operadores do MongoDB com
     • Tabelas dinâmicas com paginação e ordenação
     • Filtros por campos (ex: busca por nome, ID, faixa de valor)
     • Gráficos interativos, se desejado, utilizando bibliotecas como plotly ou matplotlib
+
+### Detalhes Importantes
+
+Após subir
