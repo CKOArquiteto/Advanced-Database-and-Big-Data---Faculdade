@@ -1,46 +1,22 @@
 import streamlit as st
 import pandas as pd
 from pymongo import MongoClient
-from kafka import KafkaProducer
-from pyspark.sql import SparkSession
-import json
 
 # Configurações da biblioteca do MongoDB
 mongo_client = MongoClient("mongodb://mongo:27017/")
 db = mongo_client["eshop"]
 collection = db["vendas"]
 
-# Configurações da biblioteca do Kafka
-producer = KafkaProducer(
-    bootstrap_servers='kafka:9092',
-    value_serializer=lambda v: json.dumps(v).encode('utf-8')
-)
-
-# Configurações da biblioteca do Spark
-spark = SparkSession.builder \
-    .appName("EshopAnalytics") \
-    .master("spark://spark:7077") \
-    .config("spark.mongodb.input.uri", 
-            "mongodb://mongo:27017/eshop.vendas") \
-    .config("spark.mongodb.output.uri", 
-            "mongodb://mongo:27017/eshop.vendas") \
-    .getOrCreate()
-
-# Funções Auxiliares do pipeline
-def enviar_evento_kafka(venda):
-    producer.send('novas_vendas', venda)
-    producer.flush()
-
+# Funções Auxiliares
 def carregar_dados_mongo():
     vendas = list(collection.find({}, {'_id': 0}))
     return pd.DataFrame(vendas)
 
-def analisar_vendas_spark():
+def analisar_vendas():
     df = carregar_dados_mongo()
     if not df.empty:
-        sdf = spark.createDataFrame(df)
-        resultado = sdf.groupBy("ProductCategory").count()
-        return resultado.toPandas()
+        resultado = df.groupby("ProductCategory").size().reset_index(name='TotalVendas')
+        return resultado
     else:
         return pd.DataFrame()
 
@@ -75,8 +51,7 @@ if menu == "Inserir Venda":
             "Quantity": quantity
         }
         collection.insert_one(venda)
-        enviar_evento_kafka(venda)
-        st.success("Venda cadastrada com sucesso e evento enviado para o Kafka!")
+        st.success("Venda cadastrada com sucesso!")
 
 elif menu == "Visualizar Vendas":
     st.header("Vendas Registradas")
@@ -111,7 +86,7 @@ elif menu == "Editar Venda":
             )
             st.success("Venda atualizada com sucesso!")
 
-else:  # Exclusão de dados
+elif menu == "Excluir Venda":
     st.header("Excluir Venda Existente")
     df_vendas = carregar_dados_mongo()
 
@@ -120,12 +95,13 @@ else:  # Exclusão de dados
         if st.button("Excluir Venda"):
             collection.delete_one({"OrderID": selected_order_id})
             st.success("Venda excluída com sucesso!")
-    elif menu == "Análises Big Data": 
-        st.header("Análises com Spark")
-        resultado = analisar_vendas_spark()
-    
-        if not resultado.empty:
-            st.subheader("Total de Vendas por Categoria")
-            st.dataframe(resultado)
-        else:
-            st.warning("Não há dados suficientes para análise.")
+
+elif menu == "Análises Big Data": 
+    st.header("Análises de Vendas")
+    resultado = analisar_vendas()
+
+    if not resultado.empty:
+        st.subheader("Total de Vendas por Categoria")
+        st.dataframe(resultado)
+    else:
+        st.warning("Não há dados suficientes para análise.")
