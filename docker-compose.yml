@@ -1,22 +1,28 @@
 version: "3.8"
 
 services:
-  mongodb:
-    image: mongo
-    container_name: mongodb
-    restart: always
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
-  streamlit:
+  app:
     build: .
-    container_name: streamlit_app
     ports:
       - "8501:8501"
     depends_on:
-      - mongodb
+      - mongo
+    networks:
+      - eshop_net
+
+  mongo:
+    image: mongo:5.0
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    networks:
+      - eshop_net
+    volumes:
+      - mongo_data:/data/db
+
+networks:
+  eshop_net:
 
 volumes:
   mongo_data:
